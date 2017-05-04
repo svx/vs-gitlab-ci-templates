@@ -2,7 +2,7 @@
     "name": "gitlab-ci-templates",
     "displayName": "GitLab-CI templates generator",
     "description": "GitLab-CI templates generator",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "jgsqware",
     "engines": {
         "vscode": "^1.11.0"
@@ -21,7 +21,8 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
-        "commands": [{
+        "commands": [
+            {
                 "command": "extension.createTemplate",
                 "title": "Create .gitlab-ci.yml from template"
             },
