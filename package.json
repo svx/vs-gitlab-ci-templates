@@ -9,11 +9,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/Microsoft/vscode-go.git"
+        "url": "https://gitlab.com/jgsqware/vs-gitlab-ci-templates"
     },
     "categories": [
-        "Other"
+        "Other",
+        "Snippets"
     ],
+    "icon": "images/logo.png",
     "activationEvents": [
         "workspaceContains:.git"
     ],
