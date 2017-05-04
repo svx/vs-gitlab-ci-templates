@@ -4,20 +4,52 @@ import { join } from 'path';
 import * as git from './git';
 import { window, workspace, StatusBarAlignment } from 'vscode';
 import { exec as ex } from 'child_process';
+import { ExtensionContext } from 'vscode';
 
-let cb = (err, result, args) => {
-  if (err != null) {
-    console.log(`error: ${err.code} - ${err.message}`)
-  }
+
+var templatePath: string = join(require('os').homedir(), ".vscode", "gitlab-ci-template")
+export var gitlabURL: string = "https://gitlab.com/gitlab-org/gitlab-ce.git"
+export var defaultTemplatesFolder: string = join(templatePath, "/templates")
+
+export function withTemplatePath(p) {
+  templatePath = p
+  defaultTemplatesFolder = join(templatePath, "/templates")
 }
 
 export function initTemplates(): Promise<{}> {
   return new Promise((resolve, reject) => {
-    if (!fs.existsSync(git.defaultTemplatesFolder)) {
+    if (!fs.existsSync(defaultTemplatesFolder)) {
       updateStatus("○ Initializing GitLab-ci templates")
-      git.init(git.defaultTemplatesFolder)
+      git.init(defaultTemplatesFolder)
         .then(result => {
-          git.withRootpath(git.defaultTemplatesFolder)
+          git.withRootpath(defaultTemplatesFolder)
+          git.addRemote("origin", gitlabURL)
+            .then(result => {
+              git.setConfig("core.sparsecheckout", "true")
+                .then(result => {
+                  git.appendToSparseCheckout(["vendor/gitlab-ci-yml/*"])
+                    .then(result => {
+                      updateStatus("○ Updating GitLab-ci templates")
+                      git.pull("origin", "master", "--depth=1")
+                        .then(result => resolve(result))
+                        .catch(err => reject(err))
+                    })
+                    .catch(err => {
+                      if (err != null) {
+                        console.error(`error: ${err.code} - ${err.message}`)
+                        updateStatus()
+                      }
+                    })
+                })
+            })
+            .catch(err => {
+              if (err != null) {
+                if (err.code != 128) {
+                  console.error(`error: ${err.code} - ${err.message}`)
+                  updateStatus()
+                }
+              }
+            })
         })
         .catch(err => {
           console.error(`error: ${err.code} - ${err.message}`)
@@ -25,33 +57,7 @@ export function initTemplates(): Promise<{}> {
         })
 
 
-      git.addRemote("origin", git.gitlabURL)
-        .then(result => {
-          git.setConfig("core.sparsecheckout", "true")
-            .then(result => {
-              git.appendToSparseCheckout(["vendor/gitlab-ci-yml/*"])
-                .then(result => {
-                  updateStatus("○ Updating GitLab-ci templates")
-                  git.pull("origin", "master", "--depth=1")
-                    .then(result => resolve(result))
-                    .catch(err => reject(err))
-                })
-                .catch(err => {
-                  if (err != null) {
-                    console.error(`error: ${err.code} - ${err.message}`)
-                    updateStatus()
-                  }
-                })
-            })
-        })
-        .catch(err => {
-          if (err != null) {
-            if (err.code != 128) {
-              console.error(`error: ${err.code} - ${err.message}`)
-              updateStatus()
-            }
-          }
-        })
+
 
     } else {
       updateTemplates()
@@ -87,7 +93,7 @@ function delay(ms): Promise<{}> {
 export function updateTemplates(): Promise<{}> {
   return new Promise((resolve, reject) => {
     updateStatus("○ Fetching GitLab-ci templates")
-    git.withRootpath(git.defaultTemplatesFolder)
+    git.withRootpath(defaultTemplatesFolder)
     git.diff("origin", "master", "vendor/gitlab-ci-yml/")
       .then(result => {
         if (result !== "") {
@@ -116,16 +122,16 @@ export function updateTemplates(): Promise<{}> {
 }
 
 export function selectTemplate(cb) {
-  var files = fs.readdirSync(git.defaultTemplatesFolder + "/vendor/gitlab-ci-yml/");
+  var files = fs.readdirSync(defaultTemplatesFolder + "/vendor/gitlab-ci-yml/");
   cb(files.filter(f => { return /.+\.gitlab-ci.yml/.test(f) }))
 }
 
 export function getTemplate(name) {
-  return fs.readFileSync(git.defaultTemplatesFolder + "/vendor/gitlab-ci-yml/" + name)
+  return fs.readFileSync(defaultTemplatesFolder + "/vendor/gitlab-ci-yml/" + name)
 }
 
 export function cleanUp() {
-  fs.rmdirSync(git.defaultTemplatesFolder)
+  fs.rmdirSync(defaultTemplatesFolder)
 }
 
 

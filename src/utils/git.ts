@@ -3,11 +3,8 @@
 import { exec as ex, ExecOptions, ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
 
-var rootPath: string = vscode.workspace.rootPath
-export var gitlabURL: string = "https://gitlab.com/gitlab-org/gitlab-ce.git"
-export var defaultTemplatesFolder: string = path.join(rootPath, "/templates")
+var rootPath: string
 
 export function withRootpath(rp: string) {
   rootPath = rp

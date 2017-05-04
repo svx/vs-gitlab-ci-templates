@@ -13,7 +13,6 @@ let inError = err => {
 }
 let gitlabciConfig: vscode.WorkspaceConfiguration
 export function activate(context: vscode.ExtensionContext) {
-
     gitlabciConfig = vscode.workspace.getConfiguration('gitlab-ci');
 
     gitlab.initTemplates()

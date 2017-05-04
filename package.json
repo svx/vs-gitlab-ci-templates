@@ -2,7 +2,7 @@
     "name": "gitlab-ci-templates",
     "displayName": "GitLab-CI templates generator",
     "description": "GitLab-CI templates generator",
-    "version": "0.0.2",
+    "version": "0.1.0",
     "publisher": "jgsqware",
     "engines": {
         "vscode": "^1.11.0"
