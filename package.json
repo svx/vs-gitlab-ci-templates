@@ -2,7 +2,7 @@
     "name": "gitlab-ci-templates",
     "displayName": "GitLab-CI templates generator",
     "description": "GitLab-CI templates generator",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "publisher": "jgsqware",
     "engines": {
         "vscode": "^1.11.0"
@@ -29,8 +29,21 @@
             {
                 "command": "extension.updateTemplates",
                 "title": "Update .gitlab-ci.yml templates"
+            },
+            {
+                "command": "extension.lint",
+                "title": "Lint .gitlab-ci.yml"
             }
         ],
+        "menus": {
+            "editor/context": [
+                {
+                    "command": "extension.lint",
+                    "when": "resourceLangId == yaml",
+                    "group": "navigation@1.31"
+                }
+            ]
+        },
         "configuration": {
             "title": ".gitlab-ci.yml templates",
             "properties": {
@@ -38,6 +51,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Use default templates from Gitlab CE repository"
+                },
+                "gitlab-ci.gitlabURL": {
+                    "type": "string",
+                    "default": "https://gitlab.com",
+                    "description": "Use alternative Gitlab URL"
                 }
             }
         }
@@ -54,5 +72,9 @@
         "mocha": "^2.3.3",
         "@types/node": "^6.0.40",
         "@types/mocha": "^2.2.32"
+    },
+    "dependencies": {
+        "gitlab-ci-lint": "^0.2.0",
+        "vscode-languageserver": "^2.6.2"
     }
 }

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { join } from 'path';
 import * as gitlab from './utils/gitlab';
+import * as gitlabCILint from 'gitlab-ci-lint';
 
 let updated = result => gitlab.updateStatus("◉ Gitlab-ci templates up-to-date", 3000)
 let inError = err => {
@@ -12,6 +13,7 @@ let inError = err => {
     }
 }
 let gitlabciConfig: vscode.WorkspaceConfiguration
+var gitlab_ci_lint = vscode.window.createOutputChannel("gitlab-ci-lint")
 export function activate(context: vscode.ExtensionContext) {
     gitlabciConfig = vscode.workspace.getConfiguration('gitlab-ci');
 
@@ -67,8 +69,11 @@ export function activate(context: vscode.ExtensionContext) {
                 .then(updated)
                 .catch(inError)
         }
-    })
+    });
 
+    let lint = vscode.commands.registerCommand('extension.lint', () => {
+        linte()
+    });
 
     context.subscriptions.push(updateTemplates);
     context.subscriptions.push(createFromTemplate);
@@ -78,4 +83,27 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
     gitlab.cleanUp()
     gitlab.updateStatus("GitLab-ci template deleted", 3000)
+}
+
+
+function linte() {
+    var content = vscode.window.activeTextEditor.document.getText()
+    gitlabCILint.lint(content,gitlabciConfig.get("gitlabURL"))
+    .then((result) => {
+        
+        if(result.status == "invalid"){
+            gitlab_ci_lint.appendLine(".gitlab-ci.yml is invalid.")
+            gitlab_ci_lint.appendLine("")
+            gitlab_ci_lint.appendLine("Errors:")
+            result.errors.forEach(element => {
+                gitlab_ci_lint.appendLine("\t> " + element)
+            });
+            gitlab_ci_lint.show()
+        }else{
+            vscode.window.showInformationMessage(".gitlab-ci.yml is valid.")
+            gitlab_ci_lint.clear()
+            gitlab_ci_lint.hide()
+            gitlab_ci_lint.dispose()
+        }
+    })
 }
